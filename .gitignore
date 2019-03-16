@@ -1,2 +1,12 @@
-*.class
-*.log
+.project
+.classpath
+.settings/
+/bin/
+target/
+/project/project/
+.cache-main
+.cache-tests
+
+# OS X
+.DS_Store
+
