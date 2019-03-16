@@ -34,7 +34,7 @@ trait JsonSupport extends SprayJsonSupport with SnakifiedSprayJsonSupport {
         case Success(dt) => dt
         case Failure(ex) => deserializationError(s"Failed to parse date time: $x", ex)
       }
-      case _ => deserializationError(s"Expected string instead of $json")
+      case x => deserializationError(s"Expected string instead of $x")
     }
   }
 
@@ -99,7 +99,7 @@ trait JsonSupport extends SprayJsonSupport with SnakifiedSprayJsonSupport {
   implicit val orderSideFormat = enumFormat(OrderSide)
   implicit val timeInForceFormat = enumFormat(TimeInForce)
   implicit val selfTradePreventionFormat = enumFormat(SelfTradePrevention)
-  implicit val stopOrderFormat = enumFormat(StopOrder)
+  implicit val stopTypeFormat = enumFormat(StopType)
   implicit val cancelAfterFormat = enumFormat(CancelAfter)
   implicit val marketOrderFormat = jsonFormat14(MarketOrder)
   implicit val limitOrderFormat = jsonFormat17(LimitOrder)
@@ -150,10 +150,12 @@ trait JsonSupport extends SprayJsonSupport with SnakifiedSprayJsonSupport {
   implicit val snapshotFormat = jsonFormat3(Snapshot)
   implicit val l2UpdateFormat = jsonFormat3(L2Update)
   implicit val lastMatchFormat = jsonFormat9(LastMatch)
-  implicit val matchFormat = jsonFormat9(Match)
+  implicit val matchFormat = jsonFormat11(Match)
   implicit val receivedFormat = jsonFormat12(Received)
+  implicit val changeFormat = jsonFormat10(Change)
   implicit val openFormat = jsonFormat9(Open)
   implicit val doneFormat = jsonFormat10(Done)
+  implicit val activateFormat = jsonFormat11(Activate)
   implicit val webSocketErrorFormat = jsonFormat2(WebSocketError)
   implicit val unknownFormat = jsonFormat(Unknown, "type", "original")
 
@@ -170,8 +172,10 @@ trait JsonSupport extends SprayJsonSupport with SnakifiedSprayJsonSupport {
         case x: LastMatch => lastMatchFormat.write(x)
         case x: Match => matchFormat.write(x)
         case x: Received => receivedFormat.write(x)
+        case x: Change => changeFormat.write(x)
         case x: Open => openFormat.write(x)
         case x: Done => doneFormat.write(x)
+        case x: Activate => activateFormat.write(x)
         case x: WebSocketError => webSocketErrorFormat.write(x)
         case x: Unknown => unknownFormat.write(x)
       }

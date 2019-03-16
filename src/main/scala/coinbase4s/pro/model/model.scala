@@ -59,13 +59,13 @@ object SelfTradePrevention extends Enum[SelfTradePrevention] {
   case object CancelBoth extends SelfTradePrevention("cb")
 }
 
-sealed abstract class StopOrder(val value: String) {
+sealed abstract class StopType(val value: String) {
   override def toString = value
 }
 
-object StopOrder extends Enum[StopOrder] {
-  case object Loss extends StopOrder("loss")
-  case object Entry extends StopOrder("entry")
+object StopType extends Enum[StopType] {
+  case object Loss extends StopType("loss")
+  case object Entry extends StopType("entry")
 }
 
 sealed abstract class CancelAfter(val value: String) {
@@ -85,7 +85,7 @@ sealed abstract class Order(
     side: OrderSide,  
     productId: ProductId, 
     stp: Option[SelfTradePrevention] = None, 
-    stop: Option[StopOrder] = None,
+    stop: Option[StopType] = None,
     stopPrice: Option[BigDecimal] = None,
 
     status: Option[String] = None, 
@@ -108,7 +108,7 @@ case class MarketOrder(
     doneReason: Option[String] = None, 
     rejectReason: Option[String] = None,
     stp: Option[SelfTradePrevention] = None, 
-    stop: Option[StopOrder] = None,
+    stop: Option[StopType] = None,
     stopPrice: Option[BigDecimal] = None
 ) extends Order(OrderType.Market, id, clientOid, side, productId, stp, stop, stopPrice, 
     status, createdAt, doneAt, doneReason, rejectReason)
@@ -129,7 +129,7 @@ case class LimitOrder(
     stp: Option[SelfTradePrevention] = None, 
     timeInForce: Option[TimeInForce] = None, 
     cancelAfter: Option[CancelAfter] = None, 
-    stop: Option[StopOrder] = None,
+    stop: Option[StopType] = None,
     stopPrice: Option[BigDecimal] = None
 ) extends Order(OrderType.Limit, id, clientOid, side, productId, stp, stop, stopPrice, 
     status, createdAt, doneAt, doneReason, rejectReason)
@@ -166,8 +166,6 @@ case class Candle(time: ZonedDateTime, open: BigDecimal, close: BigDecimal, low:
 
 
 
-sealed abstract class WebSocketMessage(val `type`: String)
-
 sealed abstract class ChannelName(val value: String) {
   override def toString = value
 }
@@ -182,6 +180,8 @@ object ChannelName extends Enum[ChannelName] {
 }
 
 case class Channel(name: ChannelName, productIds: List[ProductId] = Nil)
+
+sealed abstract class WebSocketMessage(val `type`: String)
 
 case class Subscribe(
     productIds: List[ProductId] = Nil, 
@@ -201,21 +201,21 @@ case class Subscriptions(channels: List[Channel]) extends WebSocketMessage("subs
 
 case class Heartbeat(
     sequence: Long, 
-    lastTradeId: Long, 
     productId: ProductId, 
+    lastTradeId: Long, 
     time: ZonedDateTime
 ) extends WebSocketMessage("heartbeat")
 
 case class Ticker(
     sequence: Long, 
     productId: ProductId, 
+    tradeId: Option[Long], 
+    side: Option[OrderSide], 
+    lastSize: Option[String],
     price: BigDecimal, 
     bestBid: BigDecimal, 
     bestAsk: BigDecimal,
-    side: Option[OrderSide], 
-    time: Option[ZonedDateTime], 
-    tradeId: Option[Long], 
-    lastSize: Option[String]
+    time: Option[ZonedDateTime] 
 ) extends WebSocketMessage("ticker")
 
 case class Snapshot(
@@ -226,56 +226,71 @@ case class Snapshot(
 
 case class L2Update(
     productId: ProductId, 
-    time: ZonedDateTime, 
-    changes: List[Tuple3[OrderSide, BigDecimal, BigDecimal]]
+    changes: List[(OrderSide, BigDecimal, BigDecimal)],
+    time: ZonedDateTime
 ) extends WebSocketMessage("l2update")
 
 case class LastMatch(
     sequence: Long, 
     productId: ProductId, 
-    side: Option[OrderSide], 
-    price: BigDecimal, 
-    size: BigDecimal,
     tradeId: Long, 
     makerOrderId: UUID, 
     takerOrderId: UUID, 
+    side: OrderSide, 
+    size: BigDecimal,
+    price: BigDecimal, 
     time: ZonedDateTime
 ) extends WebSocketMessage("last_match")
 
 case class Match(
     sequence: Long, 
     productId: ProductId, 
-    side: Option[OrderSide], 
-    price: BigDecimal, 
-    size: BigDecimal,
     tradeId: Long, 
     makerOrderId: UUID, 
     takerOrderId: UUID, 
+    side: OrderSide, 
+    size: BigDecimal,
+    price: BigDecimal, 
+    userId: Option[String], 
+    profileId: Option[UUID], 
     time: ZonedDateTime
 ) extends WebSocketMessage("match")
 
 case class Received(
     sequence: Long, 
-    orderId: UUID, 
-    orderType: OrderType, 
     productId: ProductId, 
-    side: Option[OrderSide], 
+    orderId: UUID, 
+    clientOid: Option[UUID], 
+    orderType: OrderType, 
+    side: OrderSide, 
+    size: Option[BigDecimal], 
     price: Option[BigDecimal], 
     funds: Option[BigDecimal], 
-    size: Option[BigDecimal], 
     userId: Option[String], 
     profileId: Option[UUID], 
-    clientOid: Option[UUID], 
     time: ZonedDateTime
 ) extends WebSocketMessage("received")
 
+case class Change(
+    sequence: Long,
+    productId: ProductId,
+    orderId: UUID,
+    side: OrderSide,
+    oldSize: BigDecimal,
+    newSize: BigDecimal,
+    price: Option[BigDecimal],
+    userId: Option[String], 
+    profileId: Option[UUID], 
+    time: ZonedDateTime
+) extends WebSocketMessage("change")
+
 case class Open(
     sequence: Long, 
-    orderId: UUID, 
-    side: Option[OrderSide], 
-    price: BigDecimal, 
-    remainingSize: BigDecimal, 
     productId: ProductId, 
+    orderId: UUID, 
+    side: OrderSide, 
+    remainingSize: BigDecimal, 
+    price: BigDecimal, 
     userId: Option[String], 
     profileId: Option[UUID], 
     time: ZonedDateTime
@@ -283,16 +298,30 @@ case class Open(
 
 case class Done(
     sequence: Long, 
-    orderId: UUID, 
-    side: Option[OrderSide], 
-    price: Option[BigDecimal], 
-    remainingSize: Option[BigDecimal], 
-    reason: String,
     productId: ProductId, 
+    orderId: UUID, 
+    side: OrderSide, 
+    remainingSize: Option[BigDecimal], 
+    price: Option[BigDecimal], 
+    reason: String,
     userId: Option[String], 
     profileId: Option[UUID], 
     time: ZonedDateTime
 ) extends WebSocketMessage("done")
+
+case class Activate(
+    sequence: Long,
+    productId: ProductId, 
+    orderId: UUID, 
+    side: OrderSide,
+    size: Option[BigDecimal],
+    stopType: StopType,
+    stopPrice: Option[BigDecimal],
+    funds: Option[BigDecimal],
+    userId: Option[String], 
+    profileId: Option[UUID], 
+    time: ZonedDateTime
+) extends WebSocketMessage("activate")
 
 case class WebSocketError(message: String, original: Option[String] = None) extends WebSocketMessage("error")
 
