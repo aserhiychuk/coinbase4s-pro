@@ -37,6 +37,10 @@ import coinbase4s.pro.model.Granularity
 import coinbase4s.pro.model.HttpException
 import coinbase4s.pro.model.JsonSupport._
 import coinbase4s.pro.model.Order
+import coinbase4s.pro.model.OrderBook
+import coinbase4s.pro.model.OrderBookLevel1
+import coinbase4s.pro.model.OrderBookLevel2
+import coinbase4s.pro.model.OrderBookLevel3
 import coinbase4s.pro.model.Product
 import coinbase4s.pro.model.ProductId
 
@@ -189,7 +193,17 @@ class RestClient(baseUri: Uri, override protected val auth: Option[Auth] = None)
 
   def getProduct(id: ProductId): Future[Product] = getProduct(id.toString)
 
-  // TODO get product order book
+  def getProductOrderBook(id: ProductId, level: Int = 1): Future[OrderBook] = {
+    val path = s"products/$id/book"
+    val query = Query("level" -> level.toString)
+
+    level match {
+      case 1 => defaultHttp[Nothing, OrderBookLevel1](path, query)
+      case 2 => defaultHttp[Nothing, OrderBookLevel2](path, query)
+      case 3 => defaultHttp[Nothing, OrderBookLevel3](path, query)
+      case x => Future.failed(new IllegalArgumentException(s"Unexpected level: $x"))
+    }
+  }
 
   // TODO get product trades
 

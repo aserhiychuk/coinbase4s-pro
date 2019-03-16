@@ -146,6 +146,26 @@ object Liquidity extends Enum[Liquidity] {
 case class Fill(tradeId: Long, productId: ProductId, side: OrderSide, price: BigDecimal, size: BigDecimal, 
     orderId: UUID, liquidity: Liquidity, fee: BigDecimal, settled: Boolean, createdAt: ZonedDateTime)
 
+sealed abstract class OrderBook
+
+case class OrderBookLevel1(
+    sequence: Long, 
+    bids: List[(BigDecimal, BigDecimal, Int)], 
+    asks: List[(BigDecimal, BigDecimal, Int)]
+) extends OrderBook
+
+case class OrderBookLevel2(
+    sequence: Long, 
+    bids: List[(BigDecimal, BigDecimal, Int)], 
+    asks: List[(BigDecimal, BigDecimal, Int)]
+) extends OrderBook
+
+case class OrderBookLevel3(
+    sequence: Long, 
+    bids: List[(BigDecimal, BigDecimal, UUID)], 
+    asks: List[(BigDecimal, BigDecimal, UUID)]
+) extends OrderBook
+
 sealed abstract class Granularity(val seconds: Int) {
   override def toString = seconds.toString
 }
