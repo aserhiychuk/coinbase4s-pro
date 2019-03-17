@@ -2,8 +2,8 @@ package coinbase4s.pro.model
 
 import java.time.ZonedDateTime
 import java.util.UUID
+
 import coinbase4s.pro.utils.Enum
-import scala.reflect.api.materializeTypeTag
 
 case class HttpException(message: String, code: Int = -1, reason: String = "") extends Exception(s"${code} ${message}")
 
@@ -18,6 +18,71 @@ case class Product(id: ProductId, baseCurrency: String, quoteCurrency: String, b
 case class Currency(id: String, name: String, minSize: BigDecimal, status: String)
 
 case class Account(id: String, profileId: String, currency: String, balance: BigDecimal, available: BigDecimal, hold: BigDecimal)
+
+sealed abstract class AccountActivity(`type`: String)
+sealed trait AccountActivityDetails
+
+case class AccountActivityTransfer(
+    id: Long, 
+    amount: BigDecimal, 
+    balance: BigDecimal, 
+    details: AccountActivityTransfer.Details, 
+    createdAt: ZonedDateTime
+) extends AccountActivity("transfer")
+
+object AccountActivityTransfer {
+  case class Details(transferId: UUID, transferType: String) extends AccountActivityDetails
+}
+
+case class AccountActivityMatch(
+    id: Long, 
+    amount: BigDecimal, 
+    balance: BigDecimal, 
+    details: AccountActivityMatch.Details, 
+    createdAt: ZonedDateTime
+) extends AccountActivity("match")
+
+object AccountActivityMatch {
+  case class Details(productId: ProductId, tradeId: String, orderId: UUID) extends AccountActivityDetails
+}
+
+case class AccountActivityFee(
+    id: Long, 
+    amount: BigDecimal, 
+    balance: BigDecimal, 
+    details: AccountActivityFee.Details, 
+    createdAt: ZonedDateTime
+) extends AccountActivity("fee")
+
+object AccountActivityFee {
+  case class Details(productId: ProductId, tradeId: String, orderId: UUID) extends AccountActivityDetails
+}
+
+case class AccountActivityRebate(
+    id: Long, 
+    amount: BigDecimal, 
+    balance: BigDecimal, 
+    details: AccountActivityRebate.Details, 
+    createdAt: ZonedDateTime
+) extends AccountActivity("rebate")
+
+object AccountActivityRebate {
+  // TODO populate details for "rebate" account activity type
+  case class Details() extends AccountActivityDetails
+}
+
+case class AccountActivityConversion(
+    id: Long, 
+    amount: BigDecimal, 
+    balance: BigDecimal, 
+    details: AccountActivityConversion.Details, 
+    createdAt: ZonedDateTime
+) extends AccountActivity("conversion")
+
+object AccountActivityConversion {
+  // TODO populate details for "conversion" account activity type
+  case class Details() extends AccountActivityDetails
+}
 
 sealed abstract class OrderSide(val value: String) {
   override def toString = value

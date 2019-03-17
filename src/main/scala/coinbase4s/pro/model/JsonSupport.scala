@@ -96,7 +96,35 @@ trait JsonSupport extends SprayJsonSupport with SnakifiedSprayJsonSupport {
   implicit val orderBookLevel2Format = jsonFormat3(OrderBookLevel2)
   implicit val orderBookLevel3Format = jsonFormat3(OrderBookLevel3)
   implicit val currencyFormat = jsonFormat4(Currency)
+
   implicit val accountFormat = jsonFormat6(Account)
+  implicit val accountActivityTransferDetailsFormat = jsonFormat2(AccountActivityTransfer.Details)
+  implicit val accountActivityTransferFormat = jsonFormat5(AccountActivityTransfer.apply)
+  implicit val accountActivityMatchDetailsFormat = jsonFormat3(AccountActivityMatch.Details)
+  implicit val accountActivityMatchFormat = jsonFormat5(AccountActivityMatch.apply)
+  implicit val accountActivityFeeDetailsFormat = jsonFormat3(AccountActivityFee.Details)
+  implicit val accountActivityFeeFormat = jsonFormat5(AccountActivityFee.apply)
+  implicit val accountActivityRebateDetailsFormat = jsonFormat0(AccountActivityRebate.Details)
+  implicit val accountActivityRebateFormat = jsonFormat5(AccountActivityRebate.apply)
+  implicit val accountActivityConversionDetailsFormat = jsonFormat0(AccountActivityConversion.Details)
+  implicit val accountActivityConversionFormat = jsonFormat5(AccountActivityConversion.apply)
+
+  implicit object AccountActivityFormat extends RootJsonFormat[AccountActivity] {
+    override def write(obj: AccountActivity) = ???
+
+    override def read(json: JsValue) = json match {
+      case x: JsObject => x.fields.get("type") match {
+        case Some(JsString("transfer")) => accountActivityTransferFormat.read(x)
+        case Some(JsString("match")) => accountActivityMatchFormat.read(x)
+        case Some(JsString("fee")) => accountActivityFeeFormat.read(x)
+        case Some(JsString("rebate")) => accountActivityRebateFormat.read(x)
+        case Some(JsString("conversion")) => accountActivityConversionFormat.read(x)
+        case Some(JsString(t)) => deserializationError(s"Unknown account activity: $t")
+        case x => deserializationError(s"Expected string instead of $x")
+      }
+      case x => deserializationError(s"Expected object with 'type' field instead of $x")
+    }
+  }
 
   implicit val orderTypeFormat = enumFormat(OrderType)
   implicit val orderSideFormat = enumFormat(OrderSide)

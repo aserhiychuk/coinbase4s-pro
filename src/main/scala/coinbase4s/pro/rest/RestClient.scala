@@ -30,6 +30,7 @@ import coinbase4s.pro.auth.Auth
 import coinbase4s.pro.auth.Authenticator
 import coinbase4s.pro.auth.Signature
 import coinbase4s.pro.model.Account
+import coinbase4s.pro.model.AccountActivity
 import coinbase4s.pro.model.Candle
 import coinbase4s.pro.model.Currency
 import coinbase4s.pro.model.Fill
@@ -124,7 +125,13 @@ class RestClient(baseUri: Uri, override protected val auth: Option[Auth] = None)
 
   def getAccount(id: UUID): Future[Account] = getAccount(id.toString)
 
-  // TODO get account ledger
+  def getAccountActivity(id: String, limit: Int = -1): ResultSet[AccountActivity] = {
+    val query = Query.newBuilder
+      .++=(getLimitParam(limit))
+      .result
+
+    paginatedHttp[AccountActivity](s"accounts/$id/ledger", query, true)
+  }
 
   // TODO get account holds
 
