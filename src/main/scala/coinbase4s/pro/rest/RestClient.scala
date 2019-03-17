@@ -145,7 +145,11 @@ class RestClient(baseUri: Uri, override protected val auth: Option[Auth] = None)
 
   def cancelOrder(id: UUID): Future[List[UUID]] = cancelOrder(id.toString)
 
-  def cancelOrders(productId: Option[ProductId]): Future[List[UUID]] = {
+  def cancelOrders(): Future[List[UUID]] = cancelOrders(None)
+
+  def cancelOrders(productId: ProductId): Future[List[UUID]] = cancelOrders(Some(productId))
+
+  protected def cancelOrders(productId: Option[ProductId]): Future[List[UUID]] = {
     val query = Query.newBuilder
       .+=(getProductIdParam(productId))
       .result
