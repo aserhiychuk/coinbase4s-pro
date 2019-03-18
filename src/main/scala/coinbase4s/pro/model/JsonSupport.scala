@@ -91,7 +91,11 @@ trait JsonSupport extends SprayJsonSupport with SnakifiedSprayJsonSupport {
     }
   }
 
+  implicit val orderTypeFormat = enumFormat(OrderType)
+  implicit val orderSideFormat = enumFormat(OrderSide)
+
   implicit val productFormat = jsonFormat15(Product)
+  implicit val productTradeFormat = jsonFormat5(ProductTrade)
   implicit val orderBookLevel1Format = jsonFormat3(OrderBookLevel1)
   implicit val orderBookLevel2Format = jsonFormat3(OrderBookLevel2)
   implicit val orderBookLevel3Format = jsonFormat3(OrderBookLevel3)
@@ -129,8 +133,6 @@ trait JsonSupport extends SprayJsonSupport with SnakifiedSprayJsonSupport {
   implicit val accountHoldTypeFormat = enumFormat(AccountHoldType)
   implicit val accountHoldFormat = jsonFormat5(AccountHold)
 
-  implicit val orderTypeFormat = enumFormat(OrderType)
-  implicit val orderSideFormat = enumFormat(OrderSide)
   implicit val timeInForceFormat = enumFormat(TimeInForce)
   implicit val selfTradePreventionFormat = enumFormat(SelfTradePrevention)
   implicit val stopTypeFormat = enumFormat(StopType)

@@ -45,6 +45,7 @@ import coinbase4s.pro.model.OrderBookLevel2
 import coinbase4s.pro.model.OrderBookLevel3
 import coinbase4s.pro.model.Product
 import coinbase4s.pro.model.ProductId
+import coinbase4s.pro.model.ProductTrade
 
 /**
  * ResultSet
@@ -56,51 +57,41 @@ trait ResultSet[T] {
 
   protected val sendRequest: SendRequest[T] 
   
-  private var before: Option[String] = Some("")
-  private var after: Option[String] = Some("")
+  private var before: Option[String] = None
+  private var after: Option[String] = None
 
-  def prev(): Future[List[T]] = before match {
-    case Some(before) => 
-      sendRequest("before", before)
-        .andThen {
-          case Success((_, before, after)) => 
-            this.before = before
-            this.after = after
-          case Failure(ex) => 
-            // No-op
-        }
-        .flatMap { 
-          case (Nil, _, _) => Future.failed(new NoSuchElementException)
-          case (result, _, _) => Future.successful(result)
-        }
-    case None => 
-      Future.failed(new NoSuchElementException)
-  }
+  def prev(): Future[List[T]] = sendRequest("before", before)
+    .andThen {
+      case Success((_, before, after)) => 
+        this.before = before
+        this.after = after
+      case Failure(ex) => 
+        // No-op
+    }
+    .flatMap { 
+      case (Nil, _, _) => Future.failed(new NoSuchElementException)
+      case (result, _, _) => Future.successful(result)
+    }
 
-  def next(): Future[List[T]] = after match {
-    case Some(after) => 
-      sendRequest("after", after)
-        .andThen {
-          case Success((_, before, after)) => 
-            this.before = before
-            this.after = after
-          case Failure(ex) => 
-            // No-op
-        }
-        .flatMap { 
-          case (Nil, _, _) => Future.failed(new NoSuchElementException)
-          case (result, _, _) => Future.successful(result)
-        }
-    case None => 
-      Future.failed(new NoSuchElementException)
-  }
+  def next(): Future[List[T]] = sendRequest("after", after)
+    .andThen {
+      case Success((_, before, after)) => 
+        this.before = before
+        this.after = after
+      case Failure(ex) => 
+        // No-op
+    }
+    .flatMap { 
+      case (Nil, _, _) => Future.failed(new NoSuchElementException)
+      case (result, _, _) => Future.successful(result)
+    }
 }
 
 /**
  * ResultSet
  */
 object ResultSet {
-  type SendRequest[T] = (String, String) => Future[(List[T], Option[String], Option[String])]
+  type SendRequest[T] = (String, Option[String]) => Future[(List[T], Option[String], Option[String])]
 
   private class ResultSetImpl[T](override val sendRequest: SendRequest[T])
     (implicit override protected val ec: ExecutionContext) extends ResultSet[T]
@@ -223,7 +214,14 @@ class RestClient(baseUri: Uri, override protected val auth: Option[Auth] = None)
     }
   }
 
-  // TODO get product trades
+  def getProductTrades(id: ProductId, limit: Int = -1): ResultSet[ProductTrade] = {
+    val query = Query.newBuilder
+      .+=("product_id" -> id.toString)
+      .++=(getLimitParam(limit))
+      .result
+
+    paginatedHttp[ProductTrade](s"products/$id/trades", query)
+  }
 
   def getProductCandles(id: ProductId, start: ZonedDateTime, end: ZonedDateTime, granularity: Granularity): Future[List[Candle]] = {
     val query = Query.newBuilder
@@ -256,8 +254,14 @@ class RestClient(baseUri: Uri, override protected val auth: Option[Auth] = None)
   protected def paginatedHttp[B](path: String, query: Query = Query.Empty, withAuth: Boolean = false)
       (implicit m: Marshaller[Nothing, RequestEntity], um: Unmarshaller[ResponseEntity, List[B]]): ResultSet[B] = {
 
+    val buildQuery: (String, Option[String]) => Query = {
+      case (name, Some(value)) => query.+:(name -> value)
+      case (_, None) => query
+    }
+
     ResultSet { case (name, value) => 
-      rawHttp[Nothing, List[B]](path, query.+:((name, value)), HttpMethods.GET, None, withAuth)
+      val query = buildQuery(name, value)
+      rawHttp[Nothing, List[B]](path, query, HttpMethods.GET, None, withAuth)
     }
   }
 

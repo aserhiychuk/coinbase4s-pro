@@ -11,9 +11,25 @@ case class ProductId(baseCurrency: String, quoteCurrency: String) {
   override def toString = s"$baseCurrency-$quoteCurrency"
 }
 
-case class Product(id: ProductId, baseCurrency: String, quoteCurrency: String, baseMinSize: BigDecimal, baseMaxSize: BigDecimal, 
-    quoteIncrement: BigDecimal, displayName: String, status: String, marginEnabled: Boolean, statusMessage: Option[String],
-    minMarketFunds: BigDecimal, maxMarketFunds: BigDecimal, postOnly: Boolean, limitOnly: Boolean, cancelOnly: Boolean)
+case class Product(
+    id: ProductId, 
+    baseCurrency: String, 
+    quoteCurrency: String, 
+    baseMinSize: BigDecimal, 
+    baseMaxSize: BigDecimal, 
+    quoteIncrement: BigDecimal, 
+    displayName: String, 
+    status: String, 
+    marginEnabled: Boolean, 
+    statusMessage: Option[String],
+    minMarketFunds: BigDecimal, 
+    maxMarketFunds: BigDecimal, 
+    postOnly: Boolean, 
+    limitOnly: Boolean, 
+    cancelOnly: Boolean
+)
+
+case class ProductTrade(tradeId: Long, side: OrderSide, size: BigDecimal, price: BigDecimal, time: ZonedDateTime)
 
 case class Currency(id: String, name: String, minSize: BigDecimal, status: String)
 
