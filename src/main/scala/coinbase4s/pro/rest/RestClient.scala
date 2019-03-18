@@ -45,6 +45,7 @@ import coinbase4s.pro.model.OrderBookLevel2
 import coinbase4s.pro.model.OrderBookLevel3
 import coinbase4s.pro.model.Product
 import coinbase4s.pro.model.ProductId
+import coinbase4s.pro.model.ProductStats
 import coinbase4s.pro.model.ProductTrade
 
 /**
@@ -233,7 +234,7 @@ class RestClient(baseUri: Uri, override protected val auth: Option[Auth] = None)
     defaultHttp[Nothing, List[Candle]](s"products/$id/candles", query)
   }
 
-  // TODO get product stats
+  def getProductStats(id: ProductId): Future[ProductStats] = defaultHttp[Nothing, ProductStats](s"products/$id/stats")
 
   def getCurrencies(): Future[List[Currency]] = defaultHttp[Nothing, List[Currency]]("currencies")
 

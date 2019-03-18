@@ -31,6 +31,14 @@ case class Product(
 
 case class ProductTrade(tradeId: Long, side: OrderSide, size: BigDecimal, price: BigDecimal, time: ZonedDateTime)
 
+case class ProductStats(
+    open: BigDecimal, 
+    low: BigDecimal, 
+    high: BigDecimal, 
+    last: BigDecimal, 
+    volume: BigDecimal 
+)
+
 case class Currency(id: String, name: String, minSize: BigDecimal, status: String)
 
 case class Account(id: String, profileId: String, currency: String, balance: BigDecimal, available: BigDecimal, hold: BigDecimal)
