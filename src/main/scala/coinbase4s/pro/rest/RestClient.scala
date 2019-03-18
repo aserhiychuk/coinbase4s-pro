@@ -31,6 +31,7 @@ import coinbase4s.pro.auth.Authenticator
 import coinbase4s.pro.auth.Signature
 import coinbase4s.pro.model.Account
 import coinbase4s.pro.model.AccountActivity
+import coinbase4s.pro.model.AccountHold
 import coinbase4s.pro.model.Candle
 import coinbase4s.pro.model.Currency
 import coinbase4s.pro.model.Fill
@@ -133,7 +134,13 @@ class RestClient(baseUri: Uri, override protected val auth: Option[Auth] = None)
     paginatedHttp[AccountActivity](s"accounts/$id/ledger", query, true)
   }
 
-  // TODO get account holds
+  def getAccountHolds(id: String, limit: Int = -1): ResultSet[AccountHold] = {
+    val query = Query.newBuilder
+      .++=(getLimitParam(limit))
+      .result
+
+    paginatedHttp[AccountHold](s"accounts/$id/holds", query, true)
+  }
 
   def placeOrder(order: Order): Future[Order] = {
     defaultHttp[Order, Order]("orders", Query.Empty, HttpMethods.POST, Some(order), true)

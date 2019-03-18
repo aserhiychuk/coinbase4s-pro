@@ -84,6 +84,17 @@ object AccountActivityConversion {
   case class Details() extends AccountActivityDetails
 }
 
+sealed abstract class AccountHoldType(val value: String) {
+  override def toString = value
+}
+
+object AccountHoldType extends Enum[AccountHoldType] {
+  case object Order extends AccountHoldType("order")
+  case object Transfer extends AccountHoldType("transfer")
+}
+
+case class AccountHold(`type`: AccountHoldType, id: UUID, amount: BigDecimal, ref: UUID, createdAt: ZonedDateTime)
+
 sealed abstract class OrderSide(val value: String) {
   override def toString = value
 }

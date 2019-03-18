@@ -126,6 +126,9 @@ trait JsonSupport extends SprayJsonSupport with SnakifiedSprayJsonSupport {
     }
   }
 
+  implicit val accountHoldTypeFormat = enumFormat(AccountHoldType)
+  implicit val accountHoldFormat = jsonFormat5(AccountHold)
+
   implicit val orderTypeFormat = enumFormat(OrderType)
   implicit val orderSideFormat = enumFormat(OrderSide)
   implicit val timeInForceFormat = enumFormat(TimeInForce)
