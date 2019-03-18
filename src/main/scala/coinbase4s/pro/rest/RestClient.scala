@@ -47,6 +47,7 @@ import coinbase4s.pro.model.Product
 import coinbase4s.pro.model.ProductId
 import coinbase4s.pro.model.ProductStats
 import coinbase4s.pro.model.ProductTrade
+import coinbase4s.pro.model.Time
 
 /**
  * ResultSet
@@ -239,6 +240,8 @@ class RestClient(baseUri: Uri, override protected val auth: Option[Auth] = None)
   def getCurrencies(): Future[List[Currency]] = defaultHttp[Nothing, List[Currency]]("currencies")
 
   def getCurrency(id: String): Future[Currency] = defaultHttp[Nothing, Currency](s"currencies/$id")
+
+  def getTime(): Future[Time] = defaultHttp[Nothing, Time]("time")
 
 
   private def getLimitParam(limit: Int) = if (limit > 0) List("limit" -> limit.toString) else Nil

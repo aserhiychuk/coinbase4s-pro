@@ -39,6 +39,8 @@ case class ProductStats(
     volume: BigDecimal 
 )
 
+case class Time(iso: String, epoch: Double)
+
 case class Currency(id: String, name: String, minSize: BigDecimal, status: String)
 
 case class Account(id: String, profileId: String, currency: String, balance: BigDecimal, available: BigDecimal, hold: BigDecimal)
