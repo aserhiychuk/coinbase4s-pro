@@ -170,7 +170,7 @@ trait JsonSupport extends SprayJsonSupport with SnakifiedSprayJsonSupport {
 
     override def read(json: JsValue) = json match {
       case JsArray(Vector(JsNumber(time), JsNumber(low), JsNumber(high), JsNumber(open), JsNumber(close), JsNumber(volume))) =>
-        val instant = Instant.ofEpochSecond(time.longValue * 1000)
+        val instant = Instant.ofEpochSecond(time.longValue)
         val dateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
         new Candle(dateTime, open, close, low, high, volume)
       case _ => deserializationError(s"Expected array [time, low, high, open, close, volume] instead of $json")
