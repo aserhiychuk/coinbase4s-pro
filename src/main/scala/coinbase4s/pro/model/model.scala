@@ -29,6 +29,16 @@ case class Product(
     cancelOnly: Boolean
 )
 
+case class ProductTicker(
+    tradeId: Long, 
+    size: BigDecimal, 
+    price: BigDecimal, 
+    bid: BigDecimal, 
+    ask: BigDecimal, 
+    volume: BigDecimal, 
+    time: ZonedDateTime
+)
+
 case class ProductTrade(tradeId: Long, side: OrderSide, size: BigDecimal, price: BigDecimal, time: ZonedDateTime)
 
 case class ProductStats(

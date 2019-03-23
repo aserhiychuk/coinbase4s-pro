@@ -46,6 +46,7 @@ import coinbase4s.pro.model.OrderBookLevel3
 import coinbase4s.pro.model.Product
 import coinbase4s.pro.model.ProductId
 import coinbase4s.pro.model.ProductStats
+import coinbase4s.pro.model.ProductTicker
 import coinbase4s.pro.model.ProductTrade
 import coinbase4s.pro.model.Time
 
@@ -214,6 +215,10 @@ class RestClient(baseUri: Uri, override protected val auth: Option[Auth] = None)
       case 3 => defaultHttp[Nothing, OrderBookLevel3](path, query)
       case x => Future.failed(new IllegalArgumentException(s"Unexpected level: $x"))
     }
+  }
+
+  def getProductTicker(id: ProductId): Future[ProductTicker] = {
+    defaultHttp[Nothing, ProductTicker](s"products/$id/ticker")
   }
 
   def getProductTrades(id: ProductId, limit: Int = -1): ResultSet[ProductTrade] = {
