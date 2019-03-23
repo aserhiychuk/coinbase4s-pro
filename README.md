@@ -16,7 +16,7 @@ import system.dispatcher
 implicit val materializer = ActorMaterializer()
 ```
 
-enabling an [API Key](https://pro.coinbase.com/profile/api) on your account
+Enable an [API Key](https://pro.coinbase.com/profile/api) on your account in order to use private endpoints
 ```scala
 val auth = Auth("<key>", "<secret>", "<passphrase>")
 ```
