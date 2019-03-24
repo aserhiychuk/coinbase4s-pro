@@ -174,16 +174,24 @@ class RestClient(baseUri: Uri, override protected val auth: Option[Auth] = None)
 
   def getOrder(id: UUID): Future[Order] = getOrder(id.toString)
 
-  def getFills(productId: Option[ProductId] = None, orderId: Option[UUID] = None, limit: Int = -1): ResultSet[Fill] = {
+  def getFillsByProduct(productId: ProductId, limit: Int = -1): ResultSet[Fill] = {
     val query = Query.newBuilder
-      .+=(getProductIdParam(productId))
-      .+=("order_id" -> orderId.getOrElse("").toString)
+      .+=("product_id" -> productId.toString)
       .++=(getLimitParam(limit))
       .result
 
     paginatedHttp[Fill]("fills", query, true)
   }
-  
+
+  def getFillsByOrder(orderId: String, limit: Int = -1): ResultSet[Fill] = {
+    val query = Query.newBuilder
+      .+=("order_id" -> orderId)
+      .++=(getLimitParam(limit))
+      .result
+
+    paginatedHttp[Fill]("fills", query, true)
+  }
+
   // TODO Deposits
 
   // TODO Withdrawals
