@@ -6,7 +6,6 @@ The **Coinbase Pro client library for Scala** (coinbase4s-pro) allows crypto ent
 * Supports both RESTful API and Websocket feed
 * Covers public as well as authenticated endpoints
 * Takes care of nuances of the API like HMAC signatures and pagination
-* Has a single dependency (Akka)
 
 ## Getting started
 
@@ -16,23 +15,23 @@ import system.dispatcher
 implicit val materializer = ActorMaterializer()
 ```
 
-Enable an [API Key](https://pro.coinbase.com/profile/api) on your account in order to use private endpoints
+Enable an [API Key](https://pro.coinbase.com/profile/api) on your account in order to use private endpoints:
 ```scala
 val auth = Auth("<key>", "<secret>", "<passphrase>")
 ```
 
 ### REST API
-Create an instance of the client:
+Instantiate a client:
 ```scala
 val baseUri = Uri("https://api.pro.coinbase.com")
-// The second argument can be skipped if there is no intention to use private endpoints
+// The second argument is optional and gives access to the private endpoints
 val restClient = new RestClient(baseUri, Some(auth))
 ```
 
 All methods, unless otherwise specified, are non-blocking and return an instance of `scala.concurrent.Future`:
 ```scala
 restClient
-  .getProducts()
+  .getProducts
   .onComplete {
     case Success(result) => 
       // process the data
@@ -101,8 +100,10 @@ printAllOrders(resultSet)
 
   - [Cancel all](https://docs.pro.coinbase.com/#cancel-all)
   ```scala
+  // Cancel all orders
   restClient.cancelOrders()
-  // or
+
+  // Cancel all orders for product
   restClient.cancelOrders(productId)
   ```
 
@@ -119,7 +120,11 @@ printAllOrders(resultSet)
 - Fills
   - [List Fills](https://docs.pro.coinbase.com/#list-fills)
   ```scala
-  restClient.getFills(Some(productId))
+  // Get fills by product
+  restClient.getFillsByProduct(productId)
+
+  // Get fills by order
+  restClient.getFillsByOrder("4007468d-581f-43ce-989f-aed92e986720")
   ```
 
 - Products
@@ -174,7 +179,7 @@ printAllOrders(resultSet)
 The WebsocketClient allows you to connect and listen to the exchange [websocket](https://docs.pro.coinbase.com/#websocket-feed) messages:
 ```scala
 val webSocketUri = Uri("wss://ws-feed.pro.coinbase.com")
-// The second argument can be skipped if there is no intention to use private endpoints
+// The second argument is optional and gives access to the private endpoints
 val wsClient = new WebSocketClient(webSocketUri, Some(auth))
 
 // This will print all incoming messages for BTC-USD product in level2 channel
